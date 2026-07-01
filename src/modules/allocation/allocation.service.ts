@@ -9,12 +9,18 @@ import { RideStatus } from '../../common/enums/ride-status.enum';
 import { NotificationService } from '../notification/notification.service';
 import { RedisService } from '../../redis/redis.service';
 import { RideService } from '../ride/ride.service';
+import { RideTimeoutService } from '../../workers/ride-timeout.service';
 
 @Injectable()
 export class AllocationService {
 
     private readonly logger =
         new Logger(AllocationService.name);
+
+    private readonly maxRetries = 3;
+
+    private readonly retryMap =
+        new Map<number, number>();
 
     constructor(
 
@@ -26,7 +32,10 @@ export class AllocationService {
 
         private readonly redisService: RedisService,
 
-        private readonly rideService: RideService
+        private readonly rideService: RideService,
+
+        private readonly rideTimeoutService: RideTimeoutService,
+
 
     ) { }
 
@@ -68,6 +77,22 @@ export class AllocationService {
             nearbyDrivers,
         );
 
+        this.rideTimeoutService.startTimer(
+
+            ride.id,
+
+            async () => {
+
+                await this.retryAllocation(
+                    ride.id,
+                );
+
+            },
+
+            30000,
+
+        );
+
         ride.status = RideStatus.NOTIFIED;
 
         await this.rideRepository.update(ride);
@@ -90,6 +115,8 @@ export class AllocationService {
             };
         }
 
+        this.rideTimeoutService.stopTimer(rideId);
+
         const ride = await this.rideService.findRideById(rideId);
 
         const driver = await this.driverService.findDriverById(driverId);
@@ -102,6 +129,7 @@ export class AllocationService {
             driverId,
             rideId,
         );
+
 
         const nearbyDrivers =
             await this.driverService.findNearbyAvailableDrivers(
@@ -121,4 +149,68 @@ export class AllocationService {
         };
     }
 
+    private async retryAllocation(
+        rideId: number,
+    ) {
+        const ride =
+            await this.rideService.findRideById(
+                rideId,
+            );
+        const retries =
+            this.retryMap.get(rideId) ?? 0;
+
+        if (retries >= this.maxRetries) {
+
+            await this.rideService.updateRideStatus(
+                rideId,
+                RideStatus.TIMEOUT,
+            );
+
+            return;
+
+        }
+        this.retryMap.set(
+            rideId,
+            retries + 1,
+        ); this.logger.log(
+
+            `Retrying allocation for ride ${rideId}`,
+
+        );
+        const nearbyDrivers =
+            await this.driverService.findNearbyAvailableDrivers(
+
+                Number(
+                    ride.pickupLatitude,
+                ),
+
+                Number(
+                    ride.pickupLongitude,
+                ),
+
+            );
+
+        await this.notificationService.notifyDrivers(
+
+            ride.id,
+
+            nearbyDrivers,
+
+        );
+
+        this.rideTimeoutService.startTimer(
+
+            ride.id,
+
+            async () => {
+
+                await this.retryAllocation(
+                    ride.id,
+                );
+
+            },
+
+        );
+
+    }
 }

@@ -1,4 +1,13 @@
 import { Module } from '@nestjs/common';
 
-@Module({})
+import { RideTimeoutService } from './ride-timeout.service';
+
+@Module({
+    providers:[
+        RideTimeoutService,
+    ],
+    exports:[
+        RideTimeoutService,
+    ],
+})
 export class WorkersModule {}

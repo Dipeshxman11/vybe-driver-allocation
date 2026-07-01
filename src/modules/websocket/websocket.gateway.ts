@@ -85,6 +85,39 @@ export class WebsocketGateway
         );
     }
 
+    notifyDrivers(
+        driverIds: number[],
+        event: string,
+        payload: any,
+    ): void {
+        for (const driverId of driverIds) {
+            this.notifyDriver(
+                driverId,
+                event,
+                payload,
+            );
+        }
+    }
+
+    notifyDriversExcept(
+        excludedDriverId: number,
+        driverIds: number[],
+        event: string,
+        payload: any,
+    ): void {
+        for (const driverId of driverIds) {
+            if (driverId === excludedDriverId) {
+                continue;
+            }
+
+            this.notifyDriver(
+                driverId,
+                event,
+                payload,
+            );
+        }
+    }
+
     @SubscribeMessage('driver-accept-ride')
     async acceptRide(
 
