@@ -1,10 +1,13 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
+import * as fs from 'fs';
+import * as path from 'path';
 import { REDIS_KEYS } from './constants/redis.constants';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
     private readonly redis: Redis;
+    private readonly assignRideLua: string;
 
     constructor() {
         this.redis = new Redis({
@@ -19,6 +22,18 @@ export class RedisService implements OnModuleDestroy {
         this.redis.on('error', (err) => {
             console.error('❌ Redis Error:', err);
         });
+
+        this.assignRideLua = fs.readFileSync(
+            path.join(
+                process.cwd(),
+                'src',
+                'modules',
+                'allocation',
+                'lua',
+                'assign-driver.lua',
+            ),
+            'utf8',
+        );
     }
 
     getClient(): Redis {
@@ -78,5 +93,21 @@ export class RedisService implements OnModuleDestroy {
 
     async onModuleDestroy() {
         await this.redis.quit();
+    }
+
+    async tryAssignRide(
+        rideId: number,
+        driverId: number,
+    ): Promise<boolean> {
+
+        const result = await this.redis.eval(
+            this.assignRideLua,
+            1,
+            `ride:${rideId}:lock`,
+            driverId.toString(),
+        );
+
+        return result === 1;
+
     }
 }

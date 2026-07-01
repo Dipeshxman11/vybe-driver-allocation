@@ -8,11 +8,8 @@ import { RideRepository } from './repositories/ride.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Ride])],
-
   controllers: [RideController],
-
-  providers: [RideService,RideRepository],
-
-  exports: [TypeOrmModule],
+  providers: [RideService, RideRepository],
+  exports: [RideService],
 })
 export class RideModule {}

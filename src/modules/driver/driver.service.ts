@@ -5,6 +5,8 @@ import {
 
 import { DriverRepository } from './repositories/driver.repository';
 import { RedisService } from '../../redis/redis.service';
+import { Driver } from './entities/driver.entity';
+import { DriverStatus } from '../../common/enums/driver-status.enum';
 
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
@@ -106,4 +108,26 @@ export class DriverService {
             nearbyDriverIds,
         );
     }
+
+    async updateDriver(driver: Driver): Promise<Driver> {
+  return this.driverRepository.update(driver);
 }
+
+async markDriverBusy(driverId: number): Promise<Driver> {
+  const driver = await this.findDriverById(driverId);
+
+  driver.status = DriverStatus.BUSY;
+
+  return this.driverRepository.update(driver);
+}
+
+
+async markDriverAvailable(driverId: number): Promise<Driver> {
+  const driver = await this.findDriverById(driverId);
+
+  driver.status = DriverStatus.AVAILABLE;
+
+  return this.driverRepository.update(driver);
+}
+}
+

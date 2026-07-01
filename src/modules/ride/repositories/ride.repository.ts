@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
@@ -13,18 +13,18 @@ export class RideRepository {
         @InjectRepository(Ride)
         private readonly repository: Repository<Ride>,
 
-    ) {}
+    ) { }
 
-    create(data: Partial<Ride>) {
-        return this.repository.save(data);
-    }
+async create(data: Partial<Ride>): Promise<Ride> {
+  return this.repository.save(data);
+}
 
-    update(ride: Ride) {
-        return this.repository.save(ride);
-    }
+async update(ride: Ride): Promise<Ride> {
+  return this.repository.save(ride);
+}
 
-    findById(id: number) {
-        return this.repository.findOne({
+    async findById(id: number): Promise<Ride> {
+        const ride = await this.repository.findOne({
             where: {
                 id,
             },
@@ -32,6 +32,12 @@ export class RideRepository {
                 driver: true,
             },
         });
+
+        if (!ride) {
+            throw new NotFoundException(`Ride with id ${id} not found`);
+        }
+
+        return ride;
     }
 
 }

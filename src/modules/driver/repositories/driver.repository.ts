@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -21,16 +21,25 @@ export class DriverRepository {
     return this.repository.find();
   }
 
-  findById(id: number) {
-    return this.repository.findOne({
-      where: { id },
+ async findById(id: number): Promise<Driver> {
+
+    const driver = await this.repository.findOne({
+        where:{ id }
     });
-  }
 
-  update(driver: Driver) {
+    if(!driver){
+        throw new NotFoundException(
+            `Driver ${id} not found`,
+        );
+    }
+
+    return driver;
+
+}
+
+async update(driver: Driver): Promise<Driver> {
     return this.repository.save(driver);
-  }
-
+}
   softDelete(id: number) {
     return this.repository.softDelete(id);
   }
