@@ -11,8 +11,8 @@ import { DriverStatus } from '../../../common/enums/driver-status.enum';
 
 @Entity('drivers')
 export class Driver {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({
     length: 100,

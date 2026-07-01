@@ -11,8 +11,8 @@ import { RideStatus } from '../../../common/enums/ride-status.enum';
 
 @Entity('rides')
 export class Ride {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column('decimal', {
     precision: 10,
