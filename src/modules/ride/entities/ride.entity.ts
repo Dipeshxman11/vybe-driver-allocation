@@ -8,6 +8,11 @@ import {
 } from 'typeorm';
 
 import { RideStatus } from '../../../common/enums/ride-status.enum';
+import {
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Driver } from '../../driver/entities/driver.entity';
 
 @Entity('rides')
 export class Ride {
@@ -26,10 +31,13 @@ export class Ride {
   })
   pickupLongitude: number;
 
-  @Column({
+  @ManyToOne(() => Driver, {
     nullable: true,
   })
-  assignedDriverId: string;
+  @JoinColumn({
+    name: 'assignedDriverId',
+  })
+  driver: Driver;
 
   @Column({
     type: 'enum',

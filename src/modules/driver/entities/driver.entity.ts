@@ -8,6 +8,8 @@ import {
 } from 'typeorm';
 
 import { DriverStatus } from '../../../common/enums/driver-status.enum';
+import { OneToMany } from 'typeorm';
+import { Ride } from '../../ride/entities/ride.entity';
 
 @Entity('drivers')
 export class Driver {
@@ -30,6 +32,12 @@ export class Driver {
     scale: 7,
   })
   longitude: number;
+
+  @OneToMany(
+    () => Ride,
+    (ride) => ride.driver,
+  )
+  rides: Ride[];
 
   @Column({
     type: 'enum',
