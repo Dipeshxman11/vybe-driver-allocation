@@ -1,0 +1,15 @@
+export enum RideStatus {
+  REQUESTED = 'REQUESTED',
+
+  SEARCHING = 'SEARCHING',
+
+  NOTIFIED = 'NOTIFIED',
+
+  ASSIGNED = 'ASSIGNED',
+
+  TIMEOUT = 'TIMEOUT',
+
+  RETRYING = 'RETRYING',
+
+  FAILED = 'FAILED',
+}
